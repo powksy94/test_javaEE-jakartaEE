@@ -1,5 +1,6 @@
 package com.matthieu;
 
+import freemarker.template.*;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -10,32 +11,31 @@ import java.util.*;
 public class TaskServlet extends HttpServlet {
     
     private final List<Task> tasks = new ArrayList<>();
+    private Configuration fmConfig;
+
+    @Override
+    public void init() throws ServletException {
+        fmConfig = new Configuration(Configuration.VERSION_2_3_33);
+        fmConfig.setServletContextForTemplateLoading(
+            getServletContext(), "/WEB-INF/templates"
+        );
+        fmConfig.setDefaultEncoding("UTF-8");
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = resp.getWriter();
+        
+        Map<String, Object> model = new HashMap<>();
+        model.put("tasks", tasks);
 
-        out.println("<!DOCTYPE html>");
-        out.println("<html><body>");
-        out.println("<h1>Ma liste de tâches</h1>");
-        out.println("<form method='POST' action='tasks'>");
-        out.println("   <input type='text' name='title' placeholder='Nouvelle tâche' required/>");
-        out.println("   <button type='submit'>Ajouter</button>");
-        out.println("</form><hr/>");
-
-        if (tasks.isEmpty()) {
-            out.print("<p>Aucune tâche pour l'instant.</p>");
-        } else {
-            out.println("<ul>");
-            for (Task t : tasks) {
-                out.println("<li>" + t.getTitle() + "</li>");
-            }
-            out.println("</ul>");
+        Template template = fmConfig.getTemplate("tasks.ftl");
+        try {
+            template.process(model, resp.getWriter());
+        } catch (TemplateException e) {
+            throw new ServletException(e);
         }
-
-        out.println("</body></html>");
     }
 
     @Override
