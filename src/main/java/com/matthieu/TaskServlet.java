@@ -10,7 +10,7 @@ import java.util.*;
 @WebServlet("/tasks")
 public class TaskServlet extends HttpServlet {
     
-    private final List<Task> tasks = new ArrayList<>();
+    
     private Configuration fmConfig;
 
     @Override
@@ -20,12 +20,16 @@ public class TaskServlet extends HttpServlet {
             getServletContext(), "/WEB-INF/templates"
         );
         fmConfig.setDefaultEncoding("UTF-8");
+
+        getServletContext().setAttribute("tasks", new ArrayList<Task>());
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
+
+        List<Task> tasks = (List<Task>) getServletContext().getAttribute("tasks");
         
         Map<String, Object> model = new HashMap<>();
         model.put("tasks", tasks);
@@ -43,6 +47,8 @@ public class TaskServlet extends HttpServlet {
             throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String title = req.getParameter("title");
+
+        List<Task> tasks = (List<Task>) getServletContext().getAttribute("tasks");
 
         if (title != null && !title.isBlank()) {
             tasks.add(new Task(title));
